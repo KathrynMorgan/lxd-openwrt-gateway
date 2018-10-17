@@ -8,8 +8,12 @@ wan_IFACE="ens7"
 #add-apt-repository ppa:ubuntu-lxc/daily -y
 #apt install -t xenial-backports lxd lxd-client
 
+# Install LXD VIA Snapd
+apt-get install snapd -y --install-recommends -y
+snap install lxd
+
 # Install Packages
-#apt update && apt upgrade -y
+apt update && apt upgrade -y
 
 # NOTE: "ifupdown" required on bionic due to current NetPlan limitations
 apt install -y openvswitch-switch ifupdown git
