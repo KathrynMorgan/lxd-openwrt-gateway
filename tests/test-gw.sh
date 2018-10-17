@@ -4,14 +4,15 @@
 # Define host iface to use
 wan_IFACE="eth0"
 
-# Add ppa on trusty/xenial
-#add-apt-repository ppa:ubuntu-lxc/stable -y
+# Install LXD on Xenial
+add-apt-repository ppa:ubuntu-lxc/daily -y
+apt install -t xenial-backports lxd lxd-client
 
 # Install Packages
-apt update -y && apt upgrade -y
+apt update && apt upgrade -y
 
 # NOTE: "ifupdown" required on bionic due to current NetPlan limitations
-apt install -y openvswitch-switch lxd ifupdown git
+apt install -y openvswitch-switch ifupdown git
 
 # Start & Enable OVS
 systemctl start openvswitch
@@ -31,32 +32,30 @@ ip link set ${wan_IFACE} up
 
 # Init LXD
 cat <<EOF | lxd init --preseed
-architecture: x86_64
 config:
-  security.privileged: "true"
-  volatile.apply_template: create
-  volatile.base_image: 23a9983c470b88c43acfd3b70244bce21a28cd869774b78bcca5a61fb7a772d3
-  volatile.eth0.hwaddr: 00:16:3e:2c:ea:f1
-  volatile.eth1.hwaddr: 00:16:3e:9c:97:2b
-  volatile.idmap.base: "0"
-  volatile.idmap.next: '[]'
-  volatile.last_state.idmap: '[]'
-devices:
-  eth0:
-    name: eth0
-    nictype: bridged
-    parent: openwrt-lan
-    type: nic
-  eth1:
-    name: eth1
-    nictype: bridged
-    parent: openwrt-wan
-    type: nic
-ephemeral: false
+  images.auto_update_interval: "0"
+cluster: null
+networks: []
+storage_pools:
+- config:
+    size: 15GB
+  description: ""
+  name: default
+  driver: btrfs
 profiles:
-- default
-stateful: false
-description: ""
+- config: {}
+  description: ""
+  devices:
+    eth0:
+      name: eth0
+      nictype: macvlan
+      parent: openwrt-wan
+      type: nic
+    root:
+      path: /
+      pool: default
+      type: disk
+  name: default
 EOF
 
 # Abort if lxd init command exits with non 0 exit code
