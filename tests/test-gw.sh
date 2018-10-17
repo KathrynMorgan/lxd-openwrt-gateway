@@ -4,9 +4,14 @@
 # Define host iface to use
 wan_IFACE="eth0"
 
+# Add ppa on trusty/xenial
+#add-apt-repository ppa:ubuntu-lxc/stable -y
+
 # Install Packages
+apt update -y && apt upgrade -y
+
 # NOTE: "ifupdown" required on bionic due to current NetPlan limitations
-apt install -y openvswitch-switch lxd ifupdown
+apt install -y openvswitch-switch lxd ifupdown git
 
 # Start & Enable OVS
 systemctl start openvswitch
@@ -74,3 +79,4 @@ lxc network attach openwrt-wan gw eth1 eth1
 # Add network interfaces to gateway container
 lxc list
 lxc exec gw ash
+
