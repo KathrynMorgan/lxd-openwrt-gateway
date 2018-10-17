@@ -2,14 +2,14 @@
 # Test lxd+ovs+OpenWRT Image on clean Ubuntu OS
 
 # Define host iface to use
-wan_IFACE="eth0"
+wan_IFACE="ens7"
 
 # Install LXD on Xenial
-add-apt-repository ppa:ubuntu-lxc/daily -y
-apt install -t xenial-backports lxd lxd-client
+#add-apt-repository ppa:ubuntu-lxc/daily -y
+#apt install -t xenial-backports lxd lxd-client
 
 # Install Packages
-apt update && apt upgrade -y
+#apt update && apt upgrade -y
 
 # NOTE: "ifupdown" required on bionic due to current NetPlan limitations
 apt install -y openvswitch-switch ifupdown git
@@ -76,6 +76,7 @@ lxc network attach openwrt-lan gw eth0 eth0
 lxc network attach openwrt-wan gw eth1 eth1
 
 # Add network interfaces to gateway container
-lxc list
+lxc start gw
 lxc exec gw ash
+lxc list
 
