@@ -2,7 +2,11 @@
 Tested on Ubuntu Bionic 18.04 LTS   
 Instructions intended for use on clean Ubuntu OS with one physical nic port (ens3 in this guide)   
 NOTICE: No previous configuration of network/ovs/lxd accounted for.
-
+    
+Default Credentials:    
+Username: root    
+Password: admin    
+    
 #### 00. Add bcio remote
 ````sh
 lxc remote add bcio https://images.braincraft.io --public --accept-certificate
@@ -142,8 +146,6 @@ reboot
 
 ## FINISHED!!
 Find your WebUI in a lan side browser @ 192.168.1.1    
-Username: root    
-Password: admin    
 
 ## ProTip:
 Use as physical network gateway by adding 2nd physical NIC to ovs bridge 'lan'    
