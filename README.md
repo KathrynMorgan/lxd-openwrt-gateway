@@ -140,6 +140,7 @@ watch -c lxc list
 reboot
 ````
 
-#### Find your WebUI in a lan side browser @ 192.168.1.1 
-###### Username: root 
-###### Password: admin
+#### FINISHED!!
+Find your WebUI in a lan side browser @ 192.168.1.1 
+Username: root 
+Password: admin
