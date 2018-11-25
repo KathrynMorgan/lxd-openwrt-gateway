@@ -1,9 +1,0 @@
-architecture: "x86_64"
-creation_date: 1539636861
-properties:
-  architecture: x86_64
-  description: "OpenWrt 18.06.1 r7258-5eb055306f"
-  os: openwrt
-  release: "18.06"
-  serial: "20181125_01:00"
-templates:

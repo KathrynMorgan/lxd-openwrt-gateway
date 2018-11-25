@@ -77,6 +77,7 @@ pack_squashfs() {
 }
 
 disable_root() {
+	chroot $instroot /bin/ash -c "yes 'admin' | passwd"
 	sed -i -e 's/^root::/root:*:/' $instroot/etc/shadow
 }
 

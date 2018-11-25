@@ -1,29 +1,149 @@
-# OpenWRT LXD Image (Unofficial) 
+# OpenWRT LXD Gateway on bare Ubuntu OS
+## Tested on Ubuntu Bionic 18.04 LTS
+## Instructions intended for use on clean Ubuntu OS 
+#### (No previous configuration of network/ovs/lxd accounted for)
 
-###### To Use:
+=================================================================================
 
-  1. `lxc remote add ccio https://ccio.containercraft.io:8443 --public --accept-certificate`
-  2. `lxc image list ccio:`
-  3. `lxc init ccio:openwrt gateway`
-  4. `lxc list`
-  5. `lxc config show gateway`
-  6. `lxc config device add gateway ens9 nic nictype=physical parent=ens9 name=ens9`
-  7. `lxc start gateway`
-  8. `lxc exec gateway ash`
+#### 00. Add bcio remote
+````sh
+lxc remote add bcio https://images.braincraft.io --public --accept-certificate
+````
 
-lxd-openwrt
-===========
+#### 01. Install Packages
+````sh
+apt update && apt upgrade -y && apt dist-upgrade -y
+apt install -y openvswitch-switch ifupdown lxd htop tree lnav tmux
+````
 
-Scripts for building LXD images from OpenWrt rootfs tarballs. The OpenWrt SDK is used to build a patched procd package.
+#### 02. Eliminate netplan due to ovs support (BUG: 1728134)
+````sh
+sed 's/^/#/g' /etc/netplan/*.yaml
+````
 
-Requirements
-------------
-It's recommended you use Debian or Ubuntu on the build system. The following additional packages are required on Ubuntu 18.04:
+#### 03. Create default "interfaces" file
+````sh
+cat <<EOF >/etc/network/interfaces
+# /etc/network/interfaces
+auto lo                                                                                   
+iface lo inet loopback
 
-* build-essential
-* subversion
-* fakeroot
+# Run interfaces.d config files
+source /etc/network/interfaces.d/*.cfg
+EOF
+````
 
-Configuration
--------------
-Refer to the top of build.sh.
+#### 04. Create wan bridge interfaces file
+````sh
+cat <<EOF >/etc/network/interfaces.d/wan.cfg
+allow-hotplug wan
+iface wan inet manual
+EOF
+````
+
+#### 05. Create ens3 interfaces file
+###### (Substitute 'ens3' for your devices physical port)
+````sh
+cat <<EOF >/etc/network/interfaces.d/ens3.cfg
+# Raise ens3 on ovs-br 'wan' with no IP
+allow-hotplug ens3
+iface ens3 inet manual
+EOF
+````
+
+#### 06. Create lan bridge interfaces file
+````sh
+cat <<EOF >/etc/network/interfaces.d/lan.cfg
+allow-hotplug lan
+iface lan inet manual
+EOF
+````
+
+#### 07. Create mgmt0 interfaces file
+````sh
+cat <<EOF >/etc/network/interfaces.d/mgmt0.cfg
+# Raise host mgmt0 iface on ovs-br 'lan' with no IP
+allow-hotplug mgmt0
+iface mgmt0 inet static
+  address 192.168.1.5
+  gateway 192.168.1.1
+  netmask 255.255.255.0
+  nameservers 192.168.1.1
+  mtu 1500
+EOF
+````
+
+#### 08. Create WAN Bridge && add WAN port to bridge
+````sh
+ovs-vsctl add-br wan -- add-port wan ens3
+````
+
+#### 09. Generate unique MAC address for mgmt0 iface
+````sh
+export HWADDRESS=$(echo "$HOSTNAME lan mgmt0" | md5sum | sed 's/^\(..\)\(..\)\(..\)\(..\)\(..\).*$/02\\:\1\\:\2\\:\3\\:\4\\:\5/')
+````
+
+#### 10. Create LAN Bridge && add LAN Host MGMT0 Virtual Interface to Bridge
+````sh
+ovs-vsctl add-br lan -- add-port lan mgmt0 -- set interface mgmt0 type=internal -- set interface mgmt0 mac="$HWADDRESS"
+````
+
+#### 11. Initialize LXD
+````sh
+cat <<EOF | lxd init --preseed
+config:
+  images.auto_update_interval: "0"
+cluster: null
+networks: []
+storage_pools:
+- config:
+    size: 15GB
+  description: ""
+  name: default
+  driver: btrfs
+profiles:
+- config: {}
+  description: ""
+  devices:
+    eth0:
+      name: eth0
+      nictype: macvlan
+      parent: lan
+      type: nic
+    root:
+      path: /
+      pool: default
+      type: disk
+  name: default
+EOF
+````
+
+#### 12. Create OpenWRT LXD Profile
+````sh
+lxc profile copy default openwrt
+lxc profile set openwrt security.privileged true
+lxc profile device set openwrt eth0 parent wan
+lxc profile device add openwrt eth1 nic nictype=bridged parent=lan
+````
+
+#### 13. Launch Gateway
+````sh
+lxc launch bcio:openwrt gateway -p openwrt
+````
+
+#### 14. Watch container for eth0 & br-lan ip initialization
+###### "ctrl + c" to exit "watch" cmd
+````sh
+watch -c lxc list
+````
+
+#### 15. Reboot host system & inherit!
+````sh
+reboot
+````
+
+=================================================================================
+
+#### Find your WebUI in a lan side browser @ 192.168.1.1 
+###### Username: root 
+###### Password: admin
