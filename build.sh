@@ -94,9 +94,9 @@ download_rootfs() {
 	fi
 
 	# global $rootfs
-	rootfs=dl/$(basename $rootfs_url)
+	rootfs="dl/$(basename $rootfs_url)"
 
-    echo "Downloading OpenWRT RootFS"
+    echo "Downloading OpenWRT RootFS $rootffs"
 	download $rootfs_url $rootfs
 	check $rootfs $rootfs_url
 }
