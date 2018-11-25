@@ -1,0 +1,12 @@
+#!/bin/bash
+
+cur_DIR="$(pwd)"
+chroot_DIR="${cur_DIR}/clean-template/root"
+
+sudo mount -t sysfs none ${chroot_DIR}/sys
+sudo mount -t proc none ${chroot_DIR}/proc
+sudo mount --bind /dev/ ${chroot_DIR}/dev
+sudo mount --bind /dev/pts ${chroot_DIR}/dev/pts
+sudo mount -o bind /etc/resolv.conf ${chroot_DIR}/etc/resolv.conf
+
+sudo chroot ${chroot_DIR}

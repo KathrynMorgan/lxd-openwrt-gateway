@@ -1,5 +1,4 @@
 #!/bin/sh
-
 set -e
 
 arch_lxd=x86_64
@@ -205,10 +204,11 @@ build_metadata() {
 architecture: "$arch_lxd"
 creation_date: $(date +%s)
 properties:
- architecture: "$arch_lxd"
- description: "$desc"
- os: "OpenWrt"
- release: "$ver"
+  architecture: "$arch_lxd"
+  description: "$desc"
+  os: "openwrt"
+  release: "$ver"
+  name: openwrt
 templates:
 EOF
 
@@ -222,7 +222,7 @@ EOF
 }
 
 build_image() {
-	lxc image import $lxc_tar
+	lxc image import $lxc_tar --public --alias openwrt
 }
 
 download_rootfs
@@ -232,8 +232,3 @@ build_procd
 build_metadata
 build_tarball
 build_image
-
-echo \# start
-echo "lxc launch $image <name>"
-echo \# set root password
-echo "lxc exec <name> passwd root"
