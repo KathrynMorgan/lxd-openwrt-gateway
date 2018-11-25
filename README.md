@@ -140,7 +140,26 @@ watch -c lxc list
 reboot
 ````
 
-#### FINISHED!!
+## FINISHED!!
 Find your WebUI in a lan side browser @ 192.168.1.1    
 Username: root    
 Password: admin    
+
+## ProTip:
+Use as physical network gateway by adding 2nd physical NIC to ovs bridge 'lan'    
+(Substitute 'ens6' for your devices physical port)    
+
+#### Create ifupdown config for physical lan port
+````sh
+cat <<EOF >/etc/network/interfaces.d/ens6.cfg
+# Raise ens6 on ovs-br 'wan' with no IP
+allow-hotplug ens6
+iface ens6 inet manual
+EOF
+````
+
+#### Add physical lan port to ovs bridge 'lan'
+````sh
+ovs-vsctl add-port lan ens6
+````
+
