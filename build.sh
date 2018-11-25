@@ -1,18 +1,23 @@
-#!/bin/sh
-set -e
-
-arch_lxd=x86_64
+#!/bin/bash -e                                     # OpenWRT LXD Image Build Tool
+#################################################################################
+export LC_TIME=C    # Disable 'C.UTF-8' on Debian/Ubuntu (unsupported by OpenWrt)
+#################################################################################
+# Define Image Vars
+echo "Setting LXD Image Vars:"
 ver=18.06.1
 dist=openwrt
+arch_lxd=x86_64
+echo "OPENWRT Version: $ver"
 
-# Workaround for Debian/Ubuntu systems which use C.UTF-8 which is unsupported by OpenWrt
-export LC_TIME=C
-
+#################################################################################
+# Print script usage
 usage() {
-	echo "Usage: $0 [-a|--arch <x86_64|i686>] [-v|--version <version>] [-p|--packages <packages>] [-f|--files] [--help]"
-	exit 1
+	echo "Usage: $0 [-a|--arch <x86_64|i686>] [-v|--version <version>] [-p|--packages <packages>] [-f|--files] [--help]" && exit 1
 }
 
+#################################################################################
+# Read cmd line arguments
+echo "Reading command line arguments ..."
 temp=$(getopt -o "a:v:p:f:" -l "arch:,version:,packages:,files:,help" -- "$@")
 eval set -- "$temp"
 while true; do
@@ -37,10 +42,16 @@ while true; do
 	esac
 done
 
+#################################################################################
+# Faile if argument parsing failure
 if [ $# -ne 0 ]; then
-        usage
+    echo "Failed to parse command line arguments"
+    usage
 fi
 
+#################################################################################
+# Determine x86 vs amd64 build
+echo "Detecting build architecture"
 case "$arch_lxd" in
 	i686)
 		arch=x86
@@ -55,17 +66,23 @@ case "$arch_lxd" in
 		;;
 esac
 
+#################################################################################
+# Detect branch version & define download url
+echo "Setting Branch Version"
 branch_ver=$(echo "${ver}"|cut -d- -f1|cut -d. -f1,2)
-
 if test $ver = snapshot; then
 	openwrt_branch=openwrt-18.06
+    echo "Setting branch to: $openwrt_branch"
 else
 	openwrt_branch=${dist}-${branch_ver}
+    echo "Setting branch to: $openwrt_branch"
 fi
 
 procd_url=https://github.com/openwrt/openwrt/branches/${openwrt_branch}/package/system/procd
-procd_extra_ver=lxd-3
 
+#################################################################################
+# Download OpenWRT rootfs
+procd_extra_ver=lxd-3
 lxc_tar=bin/${dist}-${ver}-${arch}-${subarch}-lxd.tar.gz
 metadata=bin/metadata.yaml
 
@@ -79,10 +96,13 @@ download_rootfs() {
 	# global $rootfs
 	rootfs=dl/$(basename $rootfs_url)
 
+    echo "Downloading OpenWRT RootFS"
 	download $rootfs_url $rootfs
 	check $rootfs $rootfs_url
 }
 
+#################################################################################
+# Download OpenWRT SDK
 download_sdk() {
 	if test $ver = snapshot; then
 		local sdk_url=https://downloads.openwrt.org/snapshots/targets/${arch}/${subarch}/${dist}-sdk-${arch}-${subarch}_gcc-7.3.0_musl.Linux-x86_64.tar.xz
@@ -93,6 +113,7 @@ download_sdk() {
 	fi
 	local sdk_tar=dl/$(basename $sdk_url)
 
+    echo "Downloading OpenWRT SDK"
 	download $sdk_url $sdk_tar
 	check $sdk_tar $sdk_url
 
@@ -105,6 +126,8 @@ download_sdk() {
 	fi
 }
 
+#################################################################################
+# Internal Download function
 download() {
 	url=$1
 	dst=$2
@@ -118,6 +141,8 @@ download() {
 	fi
 }
 
+#################################################################################
+# CheckSum Download Function
 download_sums() {
 	local url=$1
 
@@ -131,6 +156,8 @@ download_sums() {
 	return=$sums_file
 }
 
+#################################################################################
+# CheckSum Verify
 check() {
 	local dst=$1
 	local dst_url=$2
@@ -147,6 +174,8 @@ check() {
 	fi
 }
 
+#################################################################################
+# Download Procd
 download_procd() {
 	if ! test -e dl/procd-${openwrt_branch}; then
 		svn co $procd_url dl/procd-${openwrt_branch}
@@ -157,6 +186,8 @@ download_procd() {
 	cp -a patches/procd-${openwrt_branch}/* dl/procd-${openwrt_branch}/patches
 }
 
+#################################################################################
+# Build procd
 build_procd() {
 	rm $sdk/package/lxd-procd||true
 	ln -sfT $(pwd)/dl/procd-${openwrt_branch} $sdk/package/lxd-procd
