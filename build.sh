@@ -111,7 +111,7 @@ download_sdk() {
 	else
 		local sdk_url=https://downloads.openwrt.org/releases/${ver}/targets/${arch}/${subarch}/${dist}-sdk-${ver}-${arch}-${subarch}_gcc-7.3.0_musl.Linux-x86_64.tar.xz
 	fi
-	local sdk_tar=dl/$(basename $sdk_url)
+	local sdk_tar="dl/$(basename $sdk_url)"
 
     echo "Downloading OpenWRT SDK"
 	download $sdk_url $sdk_tar
@@ -137,7 +137,7 @@ download() {
 		echo Downloading $url
 		test -e $dir || mkdir $dir
 
-		wget -O $dst "$url"
+		wget -O "$dst" "$url"
 	fi
 }
 
