@@ -11,7 +11,7 @@ lxc remote add bcio https://images.braincraft.io --public --accept-certificate
 #### 01. Install Packages
 ````sh
 apt update && apt upgrade -y && apt dist-upgrade -y
-apt install -y openvswitch-switch ifupdown lxd htop tree lnav tmux
+apt install -y openvswitch-switch ifupdown lxd
 ````
 
 #### 02. Eliminate netplan due to ovs support (BUG: 1728134)
