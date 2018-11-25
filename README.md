@@ -8,9 +8,9 @@ Tested on Ubuntu Bionic 18.04 LTS
 Instructions intended for use on clean Ubuntu OS with one physical nic port (ens3 in this guide)   
 NOTICE: No previous configuration of network/ovs/lxd accounted for.
     
-#### 00. Add bcio remote
+#### 00. Add CCIO remote
 ````sh
-lxc remote add bcio https://images.braincraft.io --public --accept-certificate
+lxc remote add ccio https://images.braincraft.io --public --accept-certificate
 ````
 
 #### 01. Install Packages
