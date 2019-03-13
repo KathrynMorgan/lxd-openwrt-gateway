@@ -1,0 +1,1 @@
+./build.sh --packages "coreutils-od bash git-http squid luci-app-squid squid-mod-cachemgr libustream-openssl ca-bundle ca-certificates"

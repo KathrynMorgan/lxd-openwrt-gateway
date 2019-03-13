@@ -3,7 +3,7 @@
 set -e
 
 arch_lxd=x86_64
-ver=18.06.1
+ver=18.06.2
 dist=openwrt
 
 # Workaround for Debian/Ubuntu systems which use C.UTF-8 which is unsupported by OpenWrt
@@ -193,7 +193,7 @@ build_tarball() {
 	if test ${ver} != snapshot; then
 		opts="$opts --upgrade"
 	fi
-	fakeroot scripts/build_rootfs.sh $rootfs $opts -o $lxc_tar --arch=${arch} --subarch=${subarch} --packages="${packages}" --files="${files}"
+	fakeroot scripts/build_rootfs.sh $rootfs $opts -o $lxc_tar --arch=${arch} --subarch=${subarch} --packages="${packages}" --files="${files}" --upgrade
 }
 
 build_metadata() {
